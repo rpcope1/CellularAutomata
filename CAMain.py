@@ -1,16 +1,26 @@
-import Tkinter
 import sys
 import script.CA as CA
 import script.Disp as Disp
 
 width = 120
 
+#TODO: Replace this with argparse.
+def usage(program_name):
+    sys.stderr.write('A program for examing Cellular Automata systems\n')
+    sys.stderr.write('Usage: {} (rules file)\n'.format(program_name))
+
+
 if __name__ == "__main__":
-	for arg in sys.argv[1:]:
-		root = Tkinter.Tk()
-		root.title(arg)
-		start = [0]*width + [1] + [0]*width
-		rules = CA.LoadRules(arg)
-		grid = CA.EvolveSystemMulti(start, rules, len(start)/2)
-		Disp.GridDisplay(root, grid, 800, 800)
-		root.mainloop()
+    if len(sys.argv) == 1:
+        root = Disp.CellularAutomataMain()
+        root.title('Cellular Automata')
+        root.mainloop()
+
+    elif len(sys.argv) == 2:
+        root = Disp.CellularAutomataMain()
+        root.title('Cellular Automata')
+        root.load(sys.argv[1])
+        root.mainloop()
+    else:
+        usage(sys.argv[0])
+        sys.exit(1)
