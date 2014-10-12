@@ -1,4 +1,4 @@
-from Tkinter import Tk, Menu, Canvas, SUNKEN
+from Tkinter import Tk, Menu, Canvas, SUNKEN, StringVar, Label, W, LEFT, GROOVE
 import tkFileDialog
 import tkMessageBox
 
@@ -17,9 +17,8 @@ disp_logger.info('Cellular Automata display library loading.')
 
 
 class GridDisplay(Canvas):
-    def __init__(self, master, grid, w, h):
-        Canvas.__init__(self, master, width=w-80, height=h-80, relief=SUNKEN)
-        self.grid(row=0, column=0, padx=20, pady=20)
+    def __init__(self, master, grid, w, h, *args, **kwargs):
+        Canvas.__init__(self, master, *args, **kwargs)
         self.box_h = h / len(grid)
         self.box_w = w / len(grid[0])
         self.draw_grid(grid)
@@ -37,6 +36,7 @@ class GridDisplay(Canvas):
                                           (y_count + 1) * self.box_h, fill='black')
                 x_count += 1
             y_count += 1
+        self.update()
 
     def clear_canvas(self):
         self.delete("all")
@@ -58,6 +58,7 @@ class CellularAutomataMain(Tk):
         except AttributeError:
             self.tk.call(self, 'config', '-menu', self.menubar)
         self.file_menu = Menu(self)
+        self.file_menu.add_command(label="Save Automata (Image)", command=self.save_image_dialogue)
         self.file_menu.add_command(label="Load", command=self.load_dialogue)
         self.file_menu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(menu=self.file_menu, label='File')
@@ -65,24 +66,48 @@ class CellularAutomataMain(Tk):
 
         #Load blank grid
         self.width_cells = width_cells
+        canvas_width = self.GRID_WIDTH_PX-80
+        canvas_height = self.GRID_HEIGHT_PX-80
         self.grid_display = GridDisplay(self, build_blank_grid(width_cells, width_cells),
-                                        self.GRID_WIDTH_PX, self.GRID_HEIGHT_PX)
+                                        self.GRID_WIDTH_PX, self.GRID_HEIGHT_PX,
+                                        width=canvas_width, height=canvas_width, relief=GROOVE, bd=4)
+        self.grid_display.grid(row=0, column=0, padx=20, pady=20)
+
+        #Load status bar
+        self.status_bar_var = StringVar(self)
+        self.status_bar_var.set('Initialized.')
+        self.status_bar = Label(self, textvar=self.status_bar_var, relief=SUNKEN, justify=LEFT, anchor=W)
+        self.status_bar.grid(row=1, column=0, sticky="EW", padx=2, pady=2)
+
 
     def load_dialogue(self):
-        new_rule_file = tkFileDialog.askopenfilename(parent=self, title='Open Rule File', defaultextension=".txt",
-                                                     filetypes=[('Rules Files', '*.txt'), ('All Files', '*')])
+        new_rule_filename = tkFileDialog.askopenfilename(parent=self, title='Open Rule File', defaultextension=".txt",
+                                                         filetypes=[('Rules Files', '*.txt'), ('All Files', '*')])
         try:
-            self.load(new_rule_file)
+            self.load(new_rule_filename)
         except:
             disp_logger.exception('Faulted loading rules file!')
 
+    def save_image_dialogue(self):
+        automata_image_filename = tkFileDialog.asksaveasfilename(parent=self, title='Save Automata Image',
+                                                                 defaultextension='.ps',
+                                                                 filetypes=[('Postscript', '.ps')])
+        try:
+            self.grid_display.postscript(file=automata_image_filename)
+            self.status_bar_var.set('Saved automata image file as: {}'.format(automata_image_filename))
+        except:
+            disp_logger.exception('Faulted saving automata image!')
+
+
     def load(self, rule_file):
+        disp_logger.info('Attempting to load new rules file: {}'.format(rule_file))
         rules = load_rules(rule_file)
         self.state['rules'] = rules
         start_row = build_default_start_row(self.width_cells)
-        grid = evolve_system_multi(start_row, rules, len(start_row) / 2)
+        grid = evolve_system_multi(start_row, rules, self.width_cells)
         self.state['grid'] = grid
         self.grid_display.draw_grid(grid)
+        self.status_bar_var.set('Loaded rules file: {}'.format(rule_file))
 
     @staticmethod
     def about():

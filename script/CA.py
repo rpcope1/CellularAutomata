@@ -17,7 +17,7 @@ def random_list(l):
 
 
 def build_default_start_row(width):
-    return [0] * width + [1] + [0] * width
+    return [0] * (width/2) + [1] + [0] * (width/2)
 
 
 def build_blank_grid(width, height):
