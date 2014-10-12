@@ -1,3 +1,4 @@
+#Tkinter stuff for GUI
 from Tkinter import Tk, Menu, Canvas, SUNKEN, StringVar, Label, W, LEFT, GROOVE
 import tkFileDialog
 import tkMessageBox
@@ -9,6 +10,10 @@ import os
 
 import logging
 
+#Yapsy for plug-ins
+from yapsy.PluginManager import PluginManager
+
+#Internal functions for handling cellular automata
 from CA import __version__, __author__, __application_name__
 from CA import load_rules, evolve_system, evolve_system_multi, build_blank_grid, build_default_start_row
 
@@ -32,7 +37,6 @@ class GridDisplay(Canvas):
         self.clear_canvas()
         box_h = self.h / len(grid)
         box_w = self.w / len(grid[0])
-        print box_w, len(grid[0]), box_w*len(grid[0]), self.w
         y_count = 0
         for line in grid:
             x_count = 0
@@ -74,6 +78,7 @@ class CellularAutomataMain(Tk):
 
         self.config_menu = Menu(self)
         self.config_menu.add_command(label='Set Width', command=self.config_width)
+        self.config_menu.add_command(label='Configure Plug-ins')
         self.menubar.add_cascade(menu=self.config_menu, label='Configure')
         self.menubar.add_command(label="About", command=self.about)
 
@@ -92,6 +97,15 @@ class CellularAutomataMain(Tk):
         self.status_bar = Label(self, textvar=self.status_bar_var, relief=SUNKEN, justify=LEFT, anchor=W)
         self.status_bar.grid(row=1, column=0, sticky="EW", padx=2, pady=2)
 
+
+        #Build plugin manager
+        disp_logger.info('Loading plug-in manager')
+        self.status_bar_var.set('Loading plug-in manager...')
+        self.plugin_manager = PluginManager()
+        self.plugin_manager.setPluginPlaces(['../plugins/'])
+        self.plugin_manager.collectPlugins()
+        disp_logger.info('Plug-in manager loaded. {} plug-ins were loaded.'
+                         ''.format(len(self.plugin_manager.getAllPlugins())))
 
     def load_dialogue(self):
         new_rule_filename = tkFileDialog.askopenfilename(parent=self, title='Open Rule File', defaultextension=".txt",
@@ -142,6 +156,7 @@ class CellularAutomataMain(Tk):
                                               prompt='Set the width of cells for the representation',
                                               minvalue=1, maxvalue=self.GRID_WIDTH_PX/3)
         if new_width:
+            disp_logger.info('Resizing automata to new width:{}'.format(new_width))
             self.width_cells = new_width
             self._build_grid(self.state['rules'])
 
