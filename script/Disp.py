@@ -1,6 +1,7 @@
 from Tkinter import Tk, Menu, Canvas, SUNKEN, StringVar, Label, W, LEFT, GROOVE
 import tkFileDialog
 import tkMessageBox
+import tkSimpleDialog
 
 import logging
 
@@ -19,21 +20,23 @@ disp_logger.info('Cellular Automata display library loading.')
 class GridDisplay(Canvas):
     def __init__(self, master, grid, w, h, *args, **kwargs):
         Canvas.__init__(self, master, *args, **kwargs)
-        self.box_h = h / len(grid)
-        self.box_w = w / len(grid[0])
+        self.w = w
+        self.h = h
         self.draw_grid(grid)
 
     def draw_grid(self, grid):
+        box_h = self.h / len(grid)
+        box_w = self.w / len(grid[0])
         y_count = 0
         for line in grid:
             x_count = 0
             for entry in line:
                 if entry == 0:
-                    self.create_rectangle(x_count * self.box_w, y_count * self.box_h, (x_count + 1) * self.box_w,
-                                          (y_count + 1) * self.box_h, fill='white')
+                    self.create_rectangle(x_count * box_w, y_count * box_h, (x_count + 1) * box_w,
+                                          (y_count + 1) * box_h, fill='white')
                 elif entry == 1:
-                    self.create_rectangle(x_count * self.box_w, y_count * self.box_h, (x_count + 1) * self.box_w,
-                                          (y_count + 1) * self.box_h, fill='black')
+                    self.create_rectangle(x_count * box_w, y_count * box_h, (x_count + 1) * box_w,
+                                          (y_count + 1) * box_h, fill='black')
                 x_count += 1
             y_count += 1
         self.update()
@@ -62,6 +65,10 @@ class CellularAutomataMain(Tk):
         self.file_menu.add_command(label="Load", command=self.load_dialogue)
         self.file_menu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(menu=self.file_menu, label='File')
+
+        self.config_menu = Menu(self)
+        self.config_menu.add_command(label='Set Width', command=self.config_width)
+        self.menubar.add_cascade(menu=self.config_menu, label='Configure')
         self.menubar.add_command(label="About", command=self.about)
 
         #Load blank grid
@@ -70,7 +77,7 @@ class CellularAutomataMain(Tk):
         canvas_height = self.GRID_HEIGHT_PX-80
         self.grid_display = GridDisplay(self, build_blank_grid(width_cells, width_cells),
                                         self.GRID_WIDTH_PX, self.GRID_HEIGHT_PX,
-                                        width=canvas_width, height=canvas_width, relief=GROOVE, bd=4)
+                                        width=canvas_width, height=canvas_height, relief=GROOVE, bd=4)
         self.grid_display.grid(row=0, column=0, padx=20, pady=20)
 
         #Load status bar
@@ -103,11 +110,24 @@ class CellularAutomataMain(Tk):
         disp_logger.info('Attempting to load new rules file: {}'.format(rule_file))
         rules = load_rules(rule_file)
         self.state['rules'] = rules
+        self.state['rules_file'] = rule_file
+        self._build_grid(rules)
+        self.status_bar_var.set('Loaded rules file: {}'.format(rule_file))
+
+    def _build_grid(self, rules):
         start_row = build_default_start_row(self.width_cells)
         grid = evolve_system_multi(start_row, rules, self.width_cells)
         self.state['grid'] = grid
         self.grid_display.draw_grid(grid)
-        self.status_bar_var.set('Loaded rules file: {}'.format(rule_file))
+
+    def config_width(self):
+        new_width = tkSimpleDialog.askinteger(parent=self, title='Set New Automata Width',
+                                              initialvalue=self.width_cells,
+                                              prompt='Set the width of cells for the representation',
+                                              minvalue=1, maxvalue=self.GRID_WIDTH_PX/3)
+        if new_width:
+            self.width_cells = new_width
+            self._build_grid(self.state['rules'])
 
     @staticmethod
     def about():
