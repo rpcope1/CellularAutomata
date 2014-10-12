@@ -3,6 +3,10 @@ import tkFileDialog
 import tkMessageBox
 import tkSimpleDialog
 
+#For image saving
+import Image
+import os
+
 import logging
 
 from CA import __version__, __author__, __application_name__
@@ -25,8 +29,10 @@ class GridDisplay(Canvas):
         self.draw_grid(grid)
 
     def draw_grid(self, grid):
+        self.clear_canvas()
         box_h = self.h / len(grid)
         box_w = self.w / len(grid[0])
+        print box_w, len(grid[0]), box_w*len(grid[0]), self.w
         y_count = 0
         for line in grid:
             x_count = 0
@@ -97,10 +103,20 @@ class CellularAutomataMain(Tk):
 
     def save_image_dialogue(self):
         automata_image_filename = tkFileDialog.asksaveasfilename(parent=self, title='Save Automata Image',
-                                                                 defaultextension='.ps',
-                                                                 filetypes=[('Postscript', '.ps')])
+                                                                 defaultextension='.eps',
+                                                                 filetypes=[('Postscript', '.eps'),
+                                                                            ('PNG', '.png'),
+                                                                            ('JPEG', '.jpg')])
         try:
-            self.grid_display.postscript(file=automata_image_filename)
+
+            #TODO: Should we be converting, or should I have a local image representation instead?
+            if not automata_image_filename.endswith('.eps'):
+                self.grid_display.postscript(file='tmp.eps')
+                img = Image.open('tmp.eps')
+                img.save(automata_image_filename)
+                os.remove('tmp.eps')
+            else:
+                self.grid_display.postscript(file=automata_image_filename)
             self.status_bar_var.set('Saved automata image file as: {}'.format(automata_image_filename))
         except:
             disp_logger.exception('Faulted saving automata image!')
