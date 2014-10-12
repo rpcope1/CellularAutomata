@@ -1,5 +1,8 @@
 CellularAutomata
 ================
+![alt text][logo]
 
-A 1-D Cellular Automata Generator. 
-Explore different cellular automata by running CAMain.py with the rules desired as arguments.
+[logo]: https://github.com/rpcope1/CellularAutomata/blob/master/cellularautomata.jpg "Python Celluar Automata"
+
+A Cellular Automata Generator.
+Explore different cellular automata by running CAMain.py, and selecting a rules file to generate new cellular automata.
