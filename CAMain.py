@@ -1,6 +1,6 @@
 import sys
-import script.CA as CA
-import script.Disp as Disp
+import app.CATools as CA
+import app.CAApplication as Disp
 
 width = 120
 
