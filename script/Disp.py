@@ -17,6 +17,8 @@ from yapsy.PluginManager import PluginManager
 from CA import __version__, __author__, __application_name__
 from CA import load_rules, evolve_system, evolve_system_multi, build_blank_grid, build_default_start_row
 
+from config import DisplayConfiguration
+
 disp_logger = logging.getLogger(__name__)
 if not disp_logger.handlers:
     ch = logging.StreamHandler()
@@ -29,14 +31,18 @@ disp_logger.info('Cellular Automata display library loading.')
 class GridDisplay(Canvas):
     def __init__(self, master, grid, w, h, *args, **kwargs):
         Canvas.__init__(self, master, *args, **kwargs)
-        self.w = w
-        self.h = h
+        self.max_width = w
+        self.max_height = h
+        self.width = w
+        self.height = h
         self.draw_grid(grid)
 
     def draw_grid(self, grid):
         self.clear_canvas()
-        box_h = self.h / len(grid)
-        box_w = self.w / len(grid[0])
+        box_h = self.max_height / len(grid)
+        box_w = self.max_width / len(grid[0])
+        self.width = box_w * len(grid[0])
+        self.height = box_h *len(grid)
         y_count = 0
         for line in grid:
             x_count = 0
@@ -50,18 +56,19 @@ class GridDisplay(Canvas):
                 x_count += 1
             y_count += 1
         self.update()
+        self.config(width=self.width, height=self.height)
 
     def clear_canvas(self):
         self.delete("all")
 
 
 class CellularAutomataMain(Tk):
-    GRID_WIDTH_PX = 800
-    GRID_HEIGHT_PX = 800
+    GRID_WIDTH_PX = DisplayConfiguration.CA_CANVAS_MAX_PIX_X
+    GRID_HEIGHT_PX = DisplayConfiguration.CA_CANVAS_MAX_PIX_Y
 
     def __init__(self, width_cells = 120, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
-
+        self.resizable(width=False, height=False)
         self.state = {}
 
         #Build top menus
@@ -121,6 +128,8 @@ class CellularAutomataMain(Tk):
                                                                  filetypes=[('Postscript', '.eps'),
                                                                             ('PNG', '.png'),
                                                                             ('JPEG', '.jpg')])
+        if not automata_image_filename:
+            return
         try:
 
             #TODO: Should we be converting, or should I have a local image representation instead?
@@ -134,7 +143,6 @@ class CellularAutomataMain(Tk):
             self.status_bar_var.set('Saved automata image file as: {}'.format(automata_image_filename))
         except:
             disp_logger.exception('Faulted saving automata image!')
-
 
     def load(self, rule_file):
         disp_logger.info('Attempting to load new rules file: {}'.format(rule_file))
