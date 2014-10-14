@@ -11,9 +11,9 @@ def zeros(l):
     return [0 for i in range(0, int(l))]
 
 
-def random_list(l):
+def build_random_start_row(width):
     """Takes a length l and returns an array of length l full of random 0s and 1s"""
-    return [random.choice(0, 1) for i in range(0, int(l))]
+    return [random.randint(0, 1) for i in range(0, int(width+1))]
 
 
 def build_default_start_row(width):

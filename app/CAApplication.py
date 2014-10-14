@@ -1,5 +1,5 @@
 #Tkinter stuff for GUI
-from Tkinter import Tk, Menu, Canvas, SUNKEN, StringVar, Label, W, LEFT, GROOVE
+from Tkinter import Tk, Menu, Canvas, SUNKEN, StringVar, Label, W, LEFT, GROOVE, BooleanVar
 import tkFileDialog
 import tkMessageBox
 import tkSimpleDialog
@@ -17,6 +17,7 @@ from yapsy.PluginManager import PluginManager
 #Internal functions for handling cellular automata
 from CATools import __version__, __author__, __application_name__
 from CATools import load_rules, evolve_system, evolve_system_multi, build_blank_grid, build_default_start_row
+from CATools import build_random_start_row
 
 from config import DisplayConfiguration
 
@@ -72,6 +73,9 @@ class CellularAutomataMain(Tk):
         self.resizable(width=False, height=False)
         self.state = {}
 
+        self.random_start = BooleanVar(self)
+        self.random_start.trace('w', self.random_start_callback)
+
         #Build top menus
         self.menubar = Menu(self)
         try:
@@ -79,14 +83,21 @@ class CellularAutomataMain(Tk):
         except AttributeError:
             self.tk.call(self, 'config', '-menu', self.menubar)
         self.file_menu = Menu(self)
+        self.file_menu.add_command(label="Load Ruleset", command=self.load_dialogue)
+        self.file_menu.add_separator()
         self.file_menu.add_command(label="Save Automata (Image)", command=self.save_image_dialogue)
-        self.file_menu.add_command(label="Load", command=self.load_dialogue)
+        self.file_menu.add_separator()
         self.file_menu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(menu=self.file_menu, label='File')
 
         self.config_menu = Menu(self)
         self.config_menu.add_command(label='Set Dimensions', command=self.config_dimensions)
+        self.config_menu.add_checkbutton(label='Set Grid Wrap')
+        self.config_menu.add_checkbutton(label='Random Start Row', variable=self.random_start)
+        self.config_menu.add_separator()
         self.config_menu.add_command(label='Configure Plug-ins')
+        self.plug_menu = Menu(self)
+        self.config_menu.add_cascade(menu=self.plug_menu, label="Plugins...")
         self.menubar.add_cascade(menu=self.config_menu, label='Configure')
         self.menubar.add_command(label="About", command=self.about)
 
@@ -119,6 +130,8 @@ class CellularAutomataMain(Tk):
     def load_dialogue(self):
         new_rule_filename = tkFileDialog.askopenfilename(parent=self, title='Open Rule File', defaultextension=".txt",
                                                          filetypes=[('Rules Files', '*.txt'), ('All Files', '*')])
+        if not new_rule_filename:
+            return
         try:
             self.load(new_rule_filename)
         except:
@@ -155,8 +168,13 @@ class CellularAutomataMain(Tk):
         self.status_bar_var.set('Loaded rules file: {}'.format(rule_file))
 
     def _build_grid(self, rules):
-        start_row = build_default_start_row(self.width_cells)
-        grid = evolve_system_multi(start_row, rules, self.height_cells)
+        grid = []
+        if self.random_start.get():
+            start_row = build_random_start_row(self.width_cells)
+        else:
+            start_row = build_default_start_row(self.width_cells)
+        grid.append(start_row)
+        grid.extend(evolve_system_multi(start_row, rules, self.height_cells))
         self.state['grid'] = grid
         self.grid_display.draw_grid(grid)
 
@@ -171,6 +189,9 @@ class CellularAutomataMain(Tk):
         self.height_cells = new_height
         self._build_grid(self.state['rules'])
 
+
+    def random_start_callback(self, *args):
+        self._build_grid(self.state['rules'])
 
     @staticmethod
     def about():
