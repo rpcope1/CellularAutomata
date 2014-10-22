@@ -2,6 +2,7 @@ __author__ = 'Robert P. Cope'
 
 from BaseSystem import BaseSystem
 
+
 class OneDimCellularAutomata(BaseSystem):
     def __init__(self):
         BaseSystem.__init__(self)

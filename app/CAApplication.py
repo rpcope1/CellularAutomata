@@ -31,13 +31,24 @@ disp_logger.info('Cellular Automata display library loading.')
 
 
 class GridDisplay(Canvas):
+    ALLOWED_COLORS = ['black', 'white', 'red', 'green', 'blue', 'darkgreen']
+
     def __init__(self, master, grid, w, h, *args, **kwargs):
         Canvas.__init__(self, master, *args, **kwargs)
         self.max_width = w
         self.max_height = h
         self.width = w
         self.height = h
+        self._fill_color = 'black'
+        self._bg_color = 'white'
         self.draw_grid(grid)
+
+
+    def set_bg_color(self, new_color):
+        self._bg_color = new_color
+
+    def set_fill_color(self, new_color):
+        self._fill_color = new_color
 
     def draw_grid(self, grid):
         self.clear_canvas()
@@ -51,10 +62,10 @@ class GridDisplay(Canvas):
             for entry in line:
                 if entry == 0:
                     self.create_rectangle(x_count * box_w, y_count * box_h, (x_count + 1) * box_w,
-                                          (y_count + 1) * box_h, fill='white')
+                                          (y_count + 1) * box_h, fill=self._bg_color)
                 elif entry == 1:
                     self.create_rectangle(x_count * box_w, y_count * box_h, (x_count + 1) * box_w,
-                                          (y_count + 1) * box_h, fill='black')
+                                          (y_count + 1) * box_h, fill=self._fill_color)
                 x_count += 1
             y_count += 1
         self.update()
@@ -71,10 +82,21 @@ class CellularAutomataMain(Tk):
     def __init__(self, width_cells = 120, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         self.resizable(width=False, height=False)
-        self.state = {}
+        self.state = {'rules': None, 'rules_file': None, 'grid': None}
 
         self.random_start = BooleanVar(self)
         self.random_start.trace('w', self.random_start_callback)
+
+        #Load blank grid
+        self.width_cells = width_cells
+        self.height_cells = width_cells  # Default setting should probably have the grid be square.
+        canvas_width = self.GRID_WIDTH_PX-80
+        canvas_height = self.GRID_HEIGHT_PX-80
+        self.state['grid'] = build_blank_grid(width_cells, width_cells)
+        self.grid_display = GridDisplay(self, self.state['grid'],
+                                        self.GRID_WIDTH_PX, self.GRID_HEIGHT_PX,
+                                        width=canvas_width, height=canvas_height, relief=GROOVE, bd=4)
+        self.grid_display.grid(row=0, column=0, padx=20, pady=20)
 
         #Build top menus
         self.menubar = Menu(self)
@@ -94,22 +116,18 @@ class CellularAutomataMain(Tk):
         self.config_menu.add_command(label='Set Dimensions', command=self.config_dimensions)
         self.config_menu.add_checkbutton(label='Set Grid Wrap')
         self.config_menu.add_checkbutton(label='Random Start Row', variable=self.random_start)
+        self.bg_color_menu = self.build_selector_menu(GridDisplay.ALLOWED_COLORS, self.grid_display.set_bg_color,
+                                                      lambda: self.grid_display.draw_grid(self.state['grid']), 'white')
+        self.fill_color_menu = self.build_selector_menu(GridDisplay.ALLOWED_COLORS, self.grid_display.set_fill_color,
+                                                        lambda: self.grid_display.draw_grid(self.state['grid']), 'black')
+        self.config_menu.add_cascade(menu=self.bg_color_menu, label="Set Background Color...")
+        self.config_menu.add_cascade(menu=self.fill_color_menu, label="Set Fill Color...")
         self.config_menu.add_separator()
         self.config_menu.add_command(label='Configure Plug-ins')
         self.plug_menu = Menu(self)
         self.config_menu.add_cascade(menu=self.plug_menu, label="Plugins...")
         self.menubar.add_cascade(menu=self.config_menu, label='Configure')
         self.menubar.add_command(label="About", command=self.about)
-
-        #Load blank grid
-        self.width_cells = width_cells
-        self.height_cells = width_cells  # Default setting should probably have the grid be square.
-        canvas_width = self.GRID_WIDTH_PX-80
-        canvas_height = self.GRID_HEIGHT_PX-80
-        self.grid_display = GridDisplay(self, build_blank_grid(width_cells, width_cells),
-                                        self.GRID_WIDTH_PX, self.GRID_HEIGHT_PX,
-                                        width=canvas_width, height=canvas_height, relief=GROOVE, bd=4)
-        self.grid_display.grid(row=0, column=0, padx=20, pady=20)
 
         #Load status bar
         self.status_bar_var = StringVar(self)
@@ -197,3 +215,31 @@ class CellularAutomataMain(Tk):
     def about():
         tkMessageBox.showinfo('About', '{app} ({ver})\nby {auth}, 2014'
                                        ''.format(ver=__version__, auth=__author__, app=__application_name__))
+
+    def build_selector_menu(self, choices, set_fxn, update_fxn=None, default=None):
+        new_menu = Menu(self)
+
+        def build_selector_trace(selectorvar, selectorvarlist, choice, set_fnc, update_fnc=None):
+            def callback(*args):
+                #TODO: Fix this hack.
+                if selectorvar.get():
+                    for var in selectorvarlist:
+                        #Turn off everything except what we just got a trace on.
+                        if var is not selectorvar:
+                            var.set(False)
+                        set_fnc(choice)
+                        if update_fnc:
+                            update_fnc()
+            return callback
+
+        selector_vars = []
+        if not default:
+            default = choices[0]
+        for choice in choices:
+            new_var = BooleanVar(new_menu)
+            if choice == default:
+                new_var.set(True)
+            new_menu.add_checkbutton(label=str(choice).capitalize(), variable=new_var)
+            selector_vars.append(new_var)
+            new_var.trace('w', build_selector_trace(new_var, selector_vars, choice, set_fxn, update_fxn))
+        return new_menu

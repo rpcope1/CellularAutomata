@@ -1,5 +1,4 @@
 import sys
-import app.CATools as CA
 import app.CAApplication as Disp
 
 width = 120
