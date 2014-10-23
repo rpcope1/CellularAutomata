@@ -31,7 +31,8 @@ disp_logger.info('Cellular Automata display library loading.')
 
 
 class GridDisplay(Canvas):
-    ALLOWED_COLORS = ['black', 'white', 'red', 'green', 'blue', 'darkgreen']
+    ALLOWED_COLORS = ['black', 'white', 'red', 'green', 'blue', 'dark green', 'yellow', 'gray', 'orange', 'navy',
+                      'cyan', 'goldenrod', 'gold', 'dim gray', 'pink', 'purple']
 
     def __init__(self, master, grid, w, h, *args, **kwargs):
         Canvas.__init__(self, master, *args, **kwargs)
@@ -218,28 +219,21 @@ class CellularAutomataMain(Tk):
 
     def build_selector_menu(self, choices, set_fxn, update_fxn=None, default=None):
         new_menu = Menu(self)
+        choice_map = {}
 
-        def build_selector_trace(selectorvar, selectorvarlist, choice, set_fnc, update_fnc=None):
+        def build_selector_trace(var):
             def callback(*args):
-                #TODO: Fix this hack.
-                if selectorvar.get():
-                    for var in selectorvarlist:
-                        #Turn off everything except what we just got a trace on.
-                        if var is not selectorvar:
-                            var.set(False)
-                        set_fnc(choice)
-                        if update_fnc:
-                            update_fnc()
+                set_fxn(choice_map[var.get()])
+                if update_fxn:
+                    update_fxn()
             return callback
 
-        selector_vars = []
         if not default:
             default = choices[0]
+        new_var = StringVar(new_menu)
+        new_var.set(str(default))
+        new_var.trace('w', build_selector_trace(new_var))
         for choice in choices:
-            new_var = BooleanVar(new_menu)
-            if choice == default:
-                new_var.set(True)
-            new_menu.add_checkbutton(label=str(choice).capitalize(), variable=new_var)
-            selector_vars.append(new_var)
-            new_var.trace('w', build_selector_trace(new_var, selector_vars, choice, set_fxn, update_fxn))
+            choice_map[str(choice)] = choice
+            new_menu.add_radiobutton(label=str(choice).capitalize(), variable=new_var, value=str(choice))
         return new_menu
