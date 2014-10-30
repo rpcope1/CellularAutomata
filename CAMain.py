@@ -1,6 +1,4 @@
-import sys
 import argparse
-import app.CATools as CA
 import app.CAApplication as Disp
 
 #TODO: This should be a runtime config option.  (Is it already?)
