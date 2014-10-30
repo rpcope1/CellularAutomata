@@ -6,7 +6,7 @@ import tkSimpleDialog
 from utils import DimensionsDialog
 
 #For image saving
-import Image
+from PIL import Image
 import os
 
 import logging
