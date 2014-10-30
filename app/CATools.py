@@ -5,6 +5,7 @@ __application_name__ = "Cellular Automata"
 import random
 random.seed()
 
+#TODO: Add logging to all of these guys?  Unit tests?
 
 def zeros(l):
     """Takes a length l and returns an array of length l full of zeroes"""
@@ -28,17 +29,20 @@ def load_rules(rulesfile):
     """Takes in a rules file, and returns rules as a dictionary"""
     rules = {}
     NN = None
-    with open(rulesfile, 'r') as f:
-        for line in f:
-            if line[0] == "#" or len(line) == 1:  #For comments in rules file
-                pass
-            elif line[0:2].upper() == "NN":
-                NN = int(line.split()[1])
-                if NN % 2 == 1:
-                    print "Error specifying number of nearest neighbors"
-            elif line[0].upper() == "R":
-                rin = line.split(":")[1].split(";")
-                rules[tuple([int(i) for i in rin[0].split(",")])] = int(rin[1])
+    try:
+        with open(rulesfile, 'r') as f:
+            for line in f:
+                if line[0] == "#" or len(line) == 1:  #For comments in rules file
+                    pass
+                elif line[0:2].upper() == "NN":
+                    NN = int(line.split()[1])
+                    if NN % 2 == 1:
+                        print "Error specifying number of nearest neighbors"
+                elif line[0].upper() == "R":
+                    rin = line.split(":")[1].split(";")
+                    rules[tuple([int(i) for i in rin[0].split(",")])] = int(rin[1])
+    except IOError as e:
+        raise e
 
     if NN is None or 2 ** (NN + 1) != len(rules):
         print "Insufficient or too many rules loaded!"
