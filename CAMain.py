@@ -1,9 +1,6 @@
 import argparse
 import app.CAApplication as Disp
 
-#TODO: This should be a runtime config option.  (Is it already?)
-width = 120
-
 arg_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                  description='A program for examining Cellular Automata systems and rules. \
                                               \nThe program displays a 2-dimensional grid. The vertical    \
