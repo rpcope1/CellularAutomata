@@ -42,14 +42,17 @@ class GridDisplay(Canvas):
         self.height = h
         self._fill_color = 'black'
         self._bg_color = 'white'
+        self._grid_line_width = 1
         self.draw_grid(grid)
-
 
     def set_bg_color(self, new_color):
         self._bg_color = new_color
 
     def set_fill_color(self, new_color):
         self._fill_color = new_color
+
+    def set_grid_lines(self, on=True):
+        self._grid_line_width = 1 if on else 0
 
     def draw_grid(self, grid):
         self.clear_canvas()
@@ -63,10 +66,10 @@ class GridDisplay(Canvas):
             for entry in line:
                 if entry == 0:
                     self.create_rectangle(x_count * box_w, y_count * box_h, (x_count + 1) * box_w,
-                                          (y_count + 1) * box_h, fill=self._bg_color)
+                                          (y_count + 1) * box_h, fill=self._bg_color, width=self._grid_line_width)
                 elif entry == 1:
                     self.create_rectangle(x_count * box_w, y_count * box_h, (x_count + 1) * box_w,
-                                          (y_count + 1) * box_h, fill=self._fill_color)
+                                          (y_count + 1) * box_h, fill=self._fill_color, width=self._grid_line_width)
                 x_count += 1
             y_count += 1
         self.update()
@@ -105,7 +108,7 @@ class CellularAutomataMain(Tk):
             self.config(menu=self.Menu)
         except AttributeError:
             self.tk.call(self, 'config', '-menu', self.menubar)
-        self.file_menu = Menu(self)
+        self.file_menu = Menu(self, tearoff=False)
         self.file_menu.add_command(label="Load Ruleset", command=self.load_dialogue)
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Save Automata (Image)", command=self.save_image_dialogue)
@@ -113,7 +116,7 @@ class CellularAutomataMain(Tk):
         self.file_menu.add_command(label="Quit", command=self.quit)
         self.menubar.add_cascade(menu=self.file_menu, label='File')
 
-        self.config_menu = Menu(self)
+        self.config_menu = Menu(self, tearoff=False)
         self.config_menu.add_command(label='Set Dimensions', command=self.config_dimensions)
         self.config_menu.add_checkbutton(label='Set Grid Wrap')
         self.config_menu.add_checkbutton(label='Random Start Row', variable=self.random_start)
@@ -125,8 +128,8 @@ class CellularAutomataMain(Tk):
         self.config_menu.add_cascade(menu=self.fill_color_menu, label="Set Fill Color...")
         self.config_menu.add_separator()
         self.config_menu.add_command(label='Configure Plug-ins')
-        self.plug_menu = Menu(self)
-        self.config_menu.add_cascade(menu=self.plug_menu, label="Plugins...")
+        self.plugin_menu = Menu(self)
+        self.config_menu.add_cascade(menu=self.plugin_menu, label="Plugins...")
         self.menubar.add_cascade(menu=self.config_menu, label='Configure')
         self.menubar.add_command(label="About", command=self.about)
 
