@@ -83,7 +83,7 @@ class CellularAutomataMain(Tk):
     GRID_WIDTH_PX = DisplayConfiguration.CA_CANVAS_MAX_PIX_X
     GRID_HEIGHT_PX = DisplayConfiguration.CA_CANVAS_MAX_PIX_Y
 
-    def __init__(self, width_cells = 120, *args, **kwargs):
+    def __init__(self, width_cells=DisplayConfiguration.DEFAULT_WIDTH, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         self.resizable(width=False, height=False)
         self.state = {'rules': None, 'rules_file': None, 'grid': None}

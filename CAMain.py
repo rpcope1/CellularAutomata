@@ -1,10 +1,5 @@
-import sys
 import argparse
-import app.CATools as CA
 import app.CAApplication as Disp
-
-#TODO: This should be a runtime config option.  (Is it already?)
-width = 120
 
 arg_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                  description='A program for examining Cellular Automata systems and rules. \
@@ -13,7 +8,7 @@ arg_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatt
                                               \naxis displays the state of each cell.                      \
                                               \nInformation: http://en.wikipedia.org/wiki/Cellular_automaton')
 
-arg_parser.add_argument(dest='rule_file', type=str, 
+arg_parser.add_argument('-r', '--rule_file' , type=str, required=False,
                         help='A file that specifies a set of rules for each cell.  \
                               \n=== Rule structure ===                             \
                               \nR specifies rules, colon starts rule input         \
@@ -28,9 +23,10 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
     root = Disp.CellularAutomataMain()
     root.title('Cellular Automata')    
-    try:
-        root.load(args.rule_file)
-    except IOError:
-        print "WARNING: passed in file ({}) could not be opened".format(args.rule_file)
-        pass
+    if args.rule_file is not None:
+        try:
+            root.load(args.rule_file)
+        except IOError:
+            print "WARNING: passed in file ({}) could not be opened".format(args.rule_file)
+            pass
     root.mainloop()
