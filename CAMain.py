@@ -8,7 +8,7 @@ arg_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatt
                                               \naxis displays the state of each cell.                      \
                                               \nInformation: http://en.wikipedia.org/wiki/Cellular_automaton')
 
-arg_parser.add_argument('-rule_file', type=str, required=False,
+arg_parser.add_argument('-r', '--rule_file' , type=str, required=False,
                         help='A file that specifies a set of rules for each cell.  \
                               \n=== Rule structure ===                             \
                               \nR specifies rules, colon starts rule input         \
