@@ -1,5 +1,11 @@
 import argparse
-import app.CAApplication as Disp
+import app.CAApplication
+import logging
+
+root_logger = logging.getLogger("")
+ch = logging.StreamHandler()
+root_logger.addHandler(ch)
+root_logger.setLevel(logging.ERROR)
 
 arg_parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                  description='A program for examining Cellular Automata systems and rules. \
@@ -21,7 +27,7 @@ arg_parser.add_argument('-r', '--rule_file' , type=str, required=False,
 #TODO: Implement logging more better-like
 if __name__ == "__main__":
     args = arg_parser.parse_args()
-    root = Disp.CellularAutomataMain()
+    root = app.CAApplication.CellularAutomataMain()
     root.title('Cellular Automata')    
     if args.rule_file is not None:
         try:

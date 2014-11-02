@@ -1,0 +1,8 @@
+[Core]
+Name = Simple Counter
+Module = counter
+
+[Documentation]
+Author = Robert Cope
+Version = 0.1.0
+Description = Get the sum of all of the active tiles on the grid.

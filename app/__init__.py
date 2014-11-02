@@ -1,1 +1,2 @@
-__author__ = 'rcope'
+__author__ = 'Robert Cope'
+__version__ = '0.1.0'

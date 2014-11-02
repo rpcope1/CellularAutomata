@@ -3,6 +3,7 @@ __author__ = 'Robert P. Cope'
 from yapsy.IPlugin import IPlugin
 import abc
 
+
 class BaseSystem(IPlugin):
     __metaclass__ = abc.ABCMeta
     @abc.abstractmethod
